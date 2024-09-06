@@ -1,0 +1,220 @@
+linq to xml.....(list box and button)
+........................
+try
+{
+    string myxml = @"<students>
+         <subject>physics </subject>
+         <subject> maths</subject>
+           <subject> science</subject>
+           </students>
+      ";
+
+   // Convert string to xml
+   XDocument xDocument = XDocument.Parse(myxml);
+    var samplevalue = xDocument.Elements("students").Descendants();
+    foreach ( var sample in samplevalue ) 
+    {
+          listBox1.Items.Add("subject details:"+sample.Value);                
+    }
+}
+catch ( Exception ex ) 
+{
+    MessageBox.Show(ex.Message);
+}
+
+................................
+linq to objects (list box and button)
+.......................
+//linq to objects
+string[] namesvalue = { "nithish", "kishore", "shashank" };
+//var resulvalue = from s in namesvalue
+//                 where s.Length > 4
+//                 select s.ToUpper();
+var resulvalue = from s in namesvalue
+                where s=="nithish"
+                select s;
+foreach ( var name in resulvalue )
+{
+    listBox1.Items.Add( name ); 
+}
+
+
+.....................................
+linq to object using list (only list box)
+........................................
+ try
+ {
+     List<string> list = new List<string>();
+     list.Add("cit");
+     list.Add("vgse");
+     list.Add("svnc");
+     list.Add("dfgr");
+     //linq to object
+     //var samplevalue = list.Select(x => x);
+     IEnumerable<string> samplevalue = list.Select(x => x);
+     foreach (var item in samplevalue)
+     {
+         listBox1.Items.Add(item);
+     }
+
+ }
+ catch (Exception ex)
+ {
+     MessageBox.Show(ex.Message);
+ }
+.......................................
+red bus(drid and button)
+........................................
+  try
+  {
+      DataClasses1DataContext data = new DataClasses1DataContext();
+      var results=from s in data.busbookings select s;
+      dataGridView1.DataSource=results;
+
+  }
+  catch(Exception ex) 
+  {
+     MessageBox.Show(ex.Message);
+  }
+.......................................
+ado (insert)(label and text box)
+..........................................
+try
+{
+    SqlConnection sqlconnection = new SqlConnection();
+    
+    sqlconnection.ConnectionString = "Data source=INBLRWHFCHPXJ23;" + "Initial Catalog=nithish;Integrated Security=false;uid=sa;pwd=Nttdata@123";
+    sqlconnection.Open();
+    SqlCommand cmd = new SqlCommand("insert into incometax(pancardnumber,cardholderman,mobilenumber)" +
+        "values(@pancardnumber,@cardholderman,@mobilenumber)", sqlconnection);
+    cmd.Parameters.AddWithValue("@pancardnumber", Convert.ToInt32(textBox1.Text));
+    cmd.Parameters.AddWithValue("@cardholderman", (textBox2.Text));
+    cmd.Parameters.AddWithValue("@mobilenumber", (textBox3.Text));
+    int resultvalue=cmd.ExecuteNonQuery();
+    if(resultvalue>0)
+    {
+        MessageBox.Show("insertion successful");
+
+    }
+    else
+    {
+        MessageBox.Show("insertion failed");
+    }
+   
+    
+    sqlconnection.Close();
+}
+catch (Exception ex)
+{
+    MessageBox.Show(ex.Message);
+}
+................................................
+linq to sql ( only display particular line(use text box and button)
+
+..............................................
+try
+            {
+                //helps to connect to sqlserver
+                SqlConnection sqlConnection = new SqlConnection();
+                //Connected architecture must have open and close method 
+
+                //windows authentication Integrated Security=true
+                //sqlserver authentication Integrated Security=false;uid=sa;pwd;Nttdata@123
+                sqlConnection.ConnectionString = "Data Source=INBLRWHFHVFJKM3;" +
+                   "Initial Catalog=Augbatch;Integrated Security=true;";
+                sqlConnection.Open();
+                SqlCommand cmd = new
+   SqlCommand("select count(pancardNumber)  from Incometax", sqlConnection);
+                object restulValue = cmd.ExecuteScalar();//aggregate function
+                textBox1.Text = restulValue.ToString() ;
+               
+                sqlConnection.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+  ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+same thing linq to sql to fetch entire table using data grid
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+try
+            {
+                //helps to connect to sqlserver
+                SqlConnection sqlConnection = new SqlConnection();
+                //Connected architecture must have open and close method 
+
+                //windows authentication Integrated Security=true
+                //sqlserver authentication Integrated Security=false;uid=sa;pwd;Nttdata@123
+                sqlConnection.ConnectionString = "Data Source=INBLRWHFHVFJKM3;" +
+                   "Initial Catalog=Augbatch;Integrated Security=true;";
+                sqlConnection.Open();
+                SqlCommand cmd = new SqlCommand("select * from   Incometax", sqlConnection);
+               SqlDataReader sample = cmd.ExecuteReader();//reading the data
+                DataTable dataTable = new DataTable();
+                dataTable.Load(sample);//load the date from the database 
+                dataGridView1.DataSource = dataTable ;//binding the output
+                                                      ////with datagridview
+               sqlConnection.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+          }
+................................................................
+linq to sql (disconnected display)
+......................................................
+
+            try
+            {
+                //helps to connect to sqlserver
+                SqlConnection sqlConnection = new SqlConnection();
+                //disconnected Connected architecture should not have open and close
+                //windows authentication Integrated Security=true
+                //sqlserver authentication Integrated Security=false;uid=sa;pwd;Nttdata@123
+                sqlConnection.ConnectionString = "Data Source=INBLRWHFHVFJKM3;" +
+                   "Initial Catalog=Augbatch;Integrated Security=true;";
+                //SqlDataadapter bridge between sqlserver and visualstudio 
+                SqlDataAdapter dataAdapter = new
+                     SqlDataAdapter("select * from Incometax", sqlConnection);
+                //local copy of the data in dataset 
+                DataSet dataSet = new DataSet();
+                //fill the data from sqlserver to dataset
+                dataAdapter.Fill(dataSet, "Incometaxdetails");
+                dataGridView1.DataSource = dataSet.Tables[0];//bind the table with 
+                //datagridview 
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+.......................................................
+linq to dataset use grid and button
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+            try
+            {
+                //helps to connect to sqlserver
+                SqlConnection sqlConnection = new SqlConnection();
+                //disconnected Connected architecture should not have open and close
+                //windows authentication Integrated Security=true
+                //sqlserver authentication Integrated Security=false;uid=sa;pwd;Nttdata@123
+                sqlConnection.ConnectionString = "Data Source=INBLRWHFHVFJKM3;" +
+                   "Initial Catalog=Augbatch;Integrated Security=true;";
+                //SqlDataadapter bridge between sqlserver and visualstudio 
+                SqlDataAdapter dataAdapter = new
+                     SqlDataAdapter("select * from Incometax", sqlConnection);
+                //local copy of the data in dataset 
+                DataSet dataSet = new DataSet();
+                //fill the data from sqlserver to dataset
+                dataAdapter.Fill(dataSet, "Incometaxdetails");
+                //linq to dataset 
+                var resultValue = from d in dataSet.Tables[0].AsEnumerable()
+                                  select d;
+                dataGridView1.DataSource = resultValue.AsDataView();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
