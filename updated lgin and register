@@ -1,0 +1,442 @@
+//database 
+
+
+CREATE TABLE Users (
+    Id INT PRIMARY KEY IDENTITY,
+	Fullname Nvarchar(100) NOT NULL,
+    Email NVARCHAR(100) NOT NULL,
+    Password NVARCHAR(100) NOT NULL,
+    Role NVARCHAR(50) NOT NULL
+);
+ select *from Users
+
+
+/////controller
+
+using System;
+using System.Linq;
+using System.Web.Mvc;
+using WebApplication1.Models;
+
+namespace WebApplication1.Controllers
+{
+    public class UserController : Controller
+    {
+        private MyntraEntities db = new MyntraEntities();
+
+        // GET: User
+        public ActionResult AdminDashboard()
+        {
+            return View();
+        }
+
+        public ActionResult UserDashboard()
+        {
+            return View();
+        }
+
+        // GET: Login
+        [HttpGet]
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+        // POST: Login
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(User user)
+        {
+            if (ModelState.IsValid)
+            {
+                var loggedInUser = db.Users
+                    .FirstOrDefault(u => u.Email == user.Email && u.Password == user.Password);
+
+                if (loggedInUser != null)
+                {
+                    // Redirect based on user role
+                    if (loggedInUser.Role == "Admin")
+                    {
+                        return RedirectToAction("AdminDashboard");
+                    }
+                    else if (loggedInUser.Role == "User")
+                    {
+                        return RedirectToAction("UserDashboard");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid login credentials.");
+                }
+            }
+
+            return View(user);
+        }
+
+        // GET: Register
+        [HttpGet]
+        public ActionResult Register()
+        {
+            return View();
+        }
+
+        // POST: Register
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Register(User user)
+        {
+            if (ModelState.IsValid)
+            {
+                // Check if the email already exists
+                var existingUser = db.Users.FirstOrDefault(u => u.Email == user.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("", "Email already exists. Please choose another one.");
+                    return View(user);
+                }
+
+                // Add new user and save changes
+                db.Users.Add(user);
+                db.SaveChanges();
+                return RedirectToAction("Login");
+            }
+            return View(user);
+        }
+    }
+}
+//////////////login
+@model WebApplication1.Models.User
+@{
+    ViewBag.Title = "Login";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="~/Content/Site.css">
+    <style>
+        body {
+            background-color: #fdefee;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh; /* Adjusted height to make space for navbar */
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 330px;
+            margin-top: 60px; /* Increased space at the top for navbar */
+        }
+
+            .container img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+
+        h2 {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 18px;
+        }
+
+        input[type="email"], input[type="password"], select {
+            width: 100%;
+            padding: 9px;
+            margin-bottom: 13px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+            height: 42px;
+            box-sizing: border-box;
+        }
+
+        .terms {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 18px;
+        }
+
+            .terms a {
+                color: hotpink;
+                text-decoration: none;
+            }
+
+        input[type="submit"] {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 11px;
+            width: 100%;
+            font-size: 15px;
+            color: #333;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 9px;
+        }
+
+        .help-text {
+            font-size: 13px;
+            color: #666;
+        }
+
+            .help-text a {
+                color: hotpink;
+                text-decoration: none;
+            }
+
+        .register {
+            margin-top: 13px;
+            font-size: 13px;
+        }
+
+            .register a {
+                color: hotpink;
+                text-decoration: none;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="https://assets.myntassets.com/f_webp,dpr_1.5,q_60,w_400,c_limit,fl_progressive/assets/images/2022/3/16/d4edb37c-aee8-4989-86f4-33b117edd4bc1647415464555-Banner_Login-Landing-page--1-.jpg" alt="Promotional Image">
+
+        <div id="log">
+            @using (Html.BeginForm("Login", "User", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <h2>Login Or Signup</h2>
+                @Html.TextBoxFor(m => m.Email, new { @placeholder = "Enter Email", @required = "required", @id = "email" })
+                <br><br>
+                @Html.PasswordFor(m => m.Password, new { @placeholder = "Enter Password", @required = "required", @id = "password" })
+                <br><br>
+                @Html.DropDownListFor(m => m.Role, new SelectList(new List<SelectListItem>
+                {
+                    new SelectListItem { Text = "User", Value = "User" },
+                    new SelectListItem { Text = "Admin", Value = "Admin" }
+                }, "Value", "Text"), "Select Role")
+                <br><br>
+                <input id="btn" type="submit" value="Login"><br><br>
+
+                <p class="terms">By continuing I agree to the <a href="https://www.myntra.com/termsofuse">Terms of Use & Privacy Policy</a></p>
+                <p class="help-text">Have trouble logging in? <a href="#">Get Help</a></p>
+                <p class="register">New user? <a href="@Url.Action("Register", "User")">Register here</a></p>
+            }
+        </div>
+    </div>
+
+    @*<script>
+        // Function to handle form submission
+        document.querySelector("#log form").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form default action (page reload)
+
+            const email = document.querySelector("#email").value.trim(); // Trim whitespace
+            const password = document.querySelector("#password").value.trim();
+
+            // Email validation
+            if (!email) {
+                alert("Please enter your email ID");
+                return false;
+            }
+
+            // Simple email validation pattern
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                alert("Please enter a valid email address");
+                return false;
+            }
+
+            // Password validation
+            if (!password) {
+                alert("Please enter your password");
+                return false;
+            }
+
+            if (password.length < 6) {
+                alert("Password should be at least 6 characters long");
+                return false;
+            }
+
+            // If everything is valid, submit the form
+            this.submit();
+        });
+    </script>*@
+</body>
+</html>
+////register
+
+
+@model WebApplication1.Models.User
+@{
+    ViewBag.Title = "Register";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Page</title>
+    <style>
+        body {
+            background-color: #fdefee;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh; /* Adjusted height to make space for navbar */
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 16px; /* Reduced padding by 10% */
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 297px; /* Reduced width by 10% */
+            margin-top: 60px; /* Increased space at the top for navbar */
+        }
+
+        h2 {
+            font-size: 20px; /* Reduced font size by 10% */
+            color: #333;
+            margin-bottom: 16px; /* Reduced margin by 10% */
+        }
+
+        input[type="text"], input[type="email"], input[type="password"], select {
+            width: 100%;
+            padding: 8px; /* Reduced padding by 10% */
+            margin-bottom: 12px; /* Reduced margin by 10% */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px; /* Reduced font size by 10% */
+            height: 38px; /* Reduced height by 10% */
+            box-sizing: border-box;
+        }
+
+        .terms {
+            font-size: 12px; /* Reduced font size by 10% */
+            color: #666;
+            margin-bottom: 16px; /* Reduced margin by 10% */
+        }
+
+            .terms a {
+                color: hotpink;
+                text-decoration: none;
+            }
+
+        input[type="submit"] {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 10px; /* Reduced padding by 10% */
+            width: 100%;
+            font-size: 14px; /* Reduced font size by 10% */
+            color: #333;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 8px; /* Reduced margin by 10% */
+        }
+
+        .help-text {
+            font-size: 12px; /* Reduced font size by 10% */
+            color: #666;
+        }
+
+            .help-text a {
+                color: hotpink;
+                text-decoration: none;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Register</h2>
+        @using (Html.BeginForm("Register", "User", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.TextBoxFor(m => m.Fullname, new { @placeholder = "Full Name", @required = "required", @id = "full-name" })<br>
+            @Html.TextBoxFor(m => m.Email, new { @placeholder = "Enter your Email ID", @required = "required", @id = "email" })<br><br>
+            @Html.PasswordFor(m => m.Password, new { @placeholder = "Enter your Password", @required = "required", @id = "password" })<br><br>
+            @Html.DropDownListFor(m => m.Role, new SelectList(new List<SelectListItem>
+            {
+                new SelectListItem { Text = "Select Role", Value = "" },
+                new SelectListItem { Text = "User", Value = "User" },
+                new SelectListItem { Text = "Admin", Value = "Admin" }
+            }, "Value", "Text"), new { @id = "role", @required = "required" })<br><br>
+
+            <p class="terms">By continuing, I agree to the <a href="https://www.myntra.com/termsofuse">Terms of Use & Privacy Policy</a></p>
+
+            <input id="btn" type="submit" value="Register"><br><br>
+            <p class="help-text">Already have an account? <a href="@Url.Action("Login", "User")">Login here</a></p>
+        }
+    </div>
+
+    @*<script>
+        document.querySelector("form").addEventListener("submit", handleRegisterSubmit);
+
+        // Function to handle registration form submission
+        function handleRegisterSubmit(event) {
+            event.preventDefault(); // Prevent form default action (page reload)
+
+            const fullName = document.querySelector("#full-name").value.trim(); // Trim whitespace
+            const email = document.querySelector("#email").value.trim();
+            const password = document.querySelector("#password").value.trim();
+            const role = document.querySelector("#role").value; // Get selected role
+
+            // Full Name validation
+            if (!fullName) {
+                alert("Please enter your full name");
+                return false;
+            }
+
+            // Email validation
+            if (!email) {
+                alert("Please enter your email ID");
+                return false;
+            }
+
+            // Simple email validation pattern
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                alert("Please enter a valid email address");
+                return false;
+            }
+
+            // Password validation
+            if (!password) {
+                alert("Please enter your password");
+                return false;
+            }
+
+            if (password.length < 6) {
+                alert("Password should be at least 6 characters long");
+                return false;
+            }
+
+            // Role validation
+            if (!role) {
+                alert("Please select a role");
+                return false;
+            }
+
+            // If everything is valid, submit the form
+            document.querySelector("form").submit();
+            return true;
+        }
+    </script>*@
+</body>
+</html>
