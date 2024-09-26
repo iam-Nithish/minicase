@@ -1,0 +1,229 @@
+// user controller
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using WebApplication1.Models;
+using WebApplication1.Controllers;
+
+namespace WebApplication1.Controllers
+{
+    public class UserController : Controller
+    {
+        // GET: User
+
+        public ActionResult AdminDashboard()
+        {
+            return View();
+        }
+        public ActionResult UserDashboard()
+        {
+            return View();
+        }
+        private nyntraEntities db = new nyntraEntities();
+
+        // Login Action
+        [HttpGet]
+        public ActionResult Login()
+        {
+            return View();
+        }
+
+       
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(User user)
+        {
+            if (ModelState.IsValid)
+            {
+                var loggedInUser = db.Users.FirstOrDefault(u => u.Email == user.Email && u.Password == user.Password);
+
+                if (loggedInUser != null)
+                {
+                    if (loggedInUser.Role == "Admin")
+                    {
+                        return RedirectToAction("AdminDashboard", "User");
+                    }
+                    else if (loggedInUser.Role == "User")
+                    {
+                        return RedirectToAction("UserDashboard", "User");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid login credentials.");
+                }
+            }
+
+            return View(user);
+        }
+        //public ActionResult Login(User user)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var loggedInUser = db.Users.FirstOrDefault(u => u.Email == user.Email && u.Password == user.Password);
+
+        //        if (loggedInUser != null)
+        //        {
+        //            if (loggedInUser.Role == "Admin")
+        //            {
+        //                return RedirectToAction("AdminDashboard", "User");
+        //            }
+        //            else if (loggedInUser.Role == "User")
+        //            {
+        //                return RedirectToAction("UserDashboard", "User");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ModelState.AddModelError("", "Invalid login credentials.");
+        //        }
+        //    }
+        //    return View(user);
+        //}
+
+        // Register Action
+        [HttpGet]
+        public ActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Register(User user)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Users.Add(user);
+                db.SaveChanges();
+                return RedirectToAction("Login");
+            }
+            return View(user);
+        }
+    }
+}
+
+// login
+
+   @model WebApplication1.Models.User
+@{
+    ViewBag.Title = "Login";
+}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="~/Content/Site.css">
+</head>
+<body>
+    <div id="log">
+        @using (Html.BeginForm("Login", "User", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken() <!-- Add this line -->
+            <div id="form">
+                <h2>Login</h2><br>
+                @Html.TextBoxFor(m => m.Email, new { @placeholder = "Enter Email", @required = "required" })
+                <br><br>
+                @Html.PasswordFor(m => m.Password, new { @placeholder = "Enter Password", @required = "required" })
+                <br><br>
+                @Html.DropDownListFor(m => m.Role, new SelectList(new List<SelectListItem>
+                {
+                    new SelectListItem { Text = "User", Value = "User" },
+                    new SelectListItem { Text = "Admin", Value = "Admin" }
+                }, "Value", "Text"), "Select Role")
+                <br><br>
+                <input id="btn" type="submit" value="Login"><br><br>
+
+                <p>Don't have an account? <a href="@Url.Action("Register", "User")">Register here</a></p>
+            </div>
+        }
+    </div>
+</body>
+</html>
+
+
+//register
+@model WebApplication1.Models.User
+@{
+    ViewBag.Title = "Register";
+}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="~/Content/Site.css">
+</head>
+<body>
+    <div id="register">
+        @using (Html.BeginForm("Register", "User", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken() <!-- Add this line -->
+            <div id="form">
+                <h2>Register</h2><br>
+                @Html.TextBoxFor(m => m.Email, new { @placeholder = "Enter Email", @required = "required" })
+                <br><br>
+                @Html.PasswordFor(m => m.Password, new { @placeholder = "Enter Password", @required = "required" })
+                <br><br>
+                @Html.DropDownListFor(m => m.Role, new SelectList(new List<SelectListItem>
+                {
+                    new SelectListItem { Text = "User", Value = "User" },
+                    new SelectListItem { Text = "Admin", Value = "Admin" }
+                }, "Value", "Text"), "Select Role")
+                <br><br>
+                <input id="btn" type="submit" value="Register"><br><br>
+            </div>
+        }
+    </div>
+</body>
+</html>
+
+///user .cs > model related
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated from a template.
+//
+//     Manual changes to this file may cause unexpected behavior in your application.
+//     Manual changes to this file will be overwritten if the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+namespace WebApplication1.Models
+{
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+
+    public class User
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
+        [Required]
+        public string Role { get; set; }
+    }
+}
+
+
